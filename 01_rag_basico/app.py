@@ -23,15 +23,16 @@ La materia oscura es un tipo de materia que se estima corresponde aproximadament
 """
 
 # 2. Función para dividir el texto en chunks
-def chunk_text(text, chunk_size=300, overlap=50):
+def chunk_text(text, chunk_words=60, overlap_words=15):
+    words = text.split()
     chunks = []
     start = 0
-    while start < len(text):
-        end = start + chunk_size
-        chunk = text[start:end]
+    while start < len(words):
+        end = start + chunk_words
+        chunk = " ".join(words[start:end])
         if chunk.strip():
             chunks.append(chunk.strip())
-        start += chunk_size - overlap
+        start += chunk_words - overlap_words
     return chunks
 
 # 3. Embedding personalizado con Ollama
@@ -42,6 +43,15 @@ class OllamaEmbeddings:
             response = ollama.embed(model='nomic-embed-text', input=text)
             embeddings.append(response['embeddings'][0])
         return embeddings
+
+    def name(self):
+        return "ollama-nomic"
+
+    def embed_query(self, input):
+        return self.__call__(input)
+
+    def embed_documents(self, input):
+        return self.__call__(input)
 
 def inicializar_bd():
     print("Inicializando Base de Datos Vectorial...")
@@ -59,9 +69,9 @@ def inicializar_bd():
         chunks = chunk_text(texto_espacio)
         ids = [f"chunk_{i}" for i in range(len(chunks))]
         collection.add(documents=chunks, ids=ids)
-        print(f"✅ Se han procesado e insertado {len(chunks)} fragmentos.")
+        print(f" Se han procesado e insertado {len(chunks)} fragmentos.")
     else:
-        print(f"✅ Colección lista. Contiene {collection.count()} fragmentos.")
+        print(f" Colección lista. Contiene {collection.count()} fragmentos.")
         
     return collection
 
@@ -75,7 +85,7 @@ def main():
     
     print("\nEscribe tu pregunta (o 'salir' para terminar).")
     while True:
-        query = input("\n👉 Pregunta: ")
+        query = input("\n Pregunta: ")
         if query.lower() in ['salir', 'exit', 'quit']:
             break
             

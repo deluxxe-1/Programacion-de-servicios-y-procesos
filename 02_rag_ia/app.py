@@ -41,6 +41,15 @@ class OllamaEmbeddings:
             embeddings.append(response['embeddings'][0])
         return embeddings
 
+    def name(self):
+        return "ollama-nomic"
+
+    def embed_query(self, input):
+        return self.__call__(input)
+
+    def embed_documents(self, input):
+        return self.__call__(input)
+
 def inicializar_bd():
     client = chromadb.PersistentClient(path='./chroma_rag_ia')
     collection = client.get_or_create_collection(
@@ -62,7 +71,7 @@ def main():
     
     print("\nEscribe tu pregunta (o 'salir' para terminar).")
     while True:
-        query = input("\n👉 Pregunta: ")
+        query = input("\n Pregunta: ")
         if query.lower() in ['salir', 'exit', 'quit']:
             break
             
@@ -78,7 +87,7 @@ def main():
         chunks = results['documents'][0]
         
         print("\n" + "="*40)
-        print(" 📄 CHUNKS CRUDOS RECUPERADOS")
+        print("  CHUNKS CRUDOS RECUPERADOS")
         print("="*40)
         for i, chunk in enumerate(chunks):
             print(f"--- Chunk {i+1} ---")
@@ -86,7 +95,7 @@ def main():
         
         # 2. Generar respuesta con IA
         print("\n" + "="*40)
-        print(" 🤖 RESPUESTA PROCESADA POR IA")
+        print("  RESPUESTA PROCESADA POR IA")
         print("="*40)
         
         context = '\n---\n'.join(chunks)

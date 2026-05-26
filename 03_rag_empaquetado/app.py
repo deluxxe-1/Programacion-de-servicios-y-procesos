@@ -15,6 +15,15 @@ class OllamaEmbeddings:
             embeddings.append(response['embeddings'][0])
         return embeddings
 
+    def name(self):
+        return "ollama-nomic"
+
+    def embed_query(self, input):
+        return self.__call__(input)
+
+    def embed_documents(self, input):
+        return self.__call__(input)
+
 client = chromadb.PersistentClient(path='./chroma_rag_empaquetado')
 
 def chunk_text(text, chunk_size=300, overlap=50):

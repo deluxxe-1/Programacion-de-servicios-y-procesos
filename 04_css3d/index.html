@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador del Sistema Solar 3D</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="overlay title-overlay">
+        <h1>Explorador del Sistema Solar 3D</h1>
+        <p>Una experiencia inmersiva con CSS3D</p>
+    </div>
+
+    <div class="overlay controls-hint">
+        <p>🖱️ Arrastra para rotar · 🖱️ Scroll para zoom</p>
+    </div>
+
+    <div id="universe" class="universe">
+        <!-- El fondo de estrellas se genera por JS -->
+        
+        <div id="solar-system" class="solar-system">
+            <div id="sun" class="celestial-body sun"></div>
+            
+            <!-- Órbitas y Planetas -->
+            <div class="orbit mercury-orbit">
+                <div class="celestial-body planet mercury" data-planet="mercurio"></div>
+            </div>
+            
+            <div class="orbit venus-orbit">
+                <div class="celestial-body planet venus" data-planet="venus"></div>
+            </div>
+            
+            <div class="orbit earth-orbit">
+                <div class="celestial-body planet earth" data-planet="tierra"></div>
+            </div>
+            
+            <div class="orbit mars-orbit">
+                <div class="celestial-body planet mars" data-planet="marte"></div>
+            </div>
+            
+            <div class="orbit jupiter-orbit">
+                <div class="celestial-body planet jupiter" data-planet="jupiter"></div>
+            </div>
+            
+            <div class="orbit saturn-orbit">
+                <div class="celestial-body planet saturn" data-planet="saturno">
+                    <div class="saturn-rings"></div>
+                </div>
+            </div>
+            
+            <div class="orbit uranus-orbit">
+                <div class="celestial-body planet uranus" data-planet="urano"></div>
+            </div>
+            
+            <div class="orbit neptune-orbit">
+                <div class="celestial-body planet neptune" data-planet="neptuno"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="info-panel" class="info-panel">
+        <button id="close-panel" class="close-btn">&times;</button>
+        <h2 id="planet-name">Nombre</h2>
+        <div class="data-grid">
+            <div class="data-item">
+                <span class="label">Diámetro:</span>
+                <span id="planet-diameter" class="value">-</span>
+            </div>
+            <div class="data-item">
+                <span class="label">Distancia al Sol:</span>
+                <span id="planet-distance" class="value">-</span>
+            </div>
+            <div class="data-item">
+                <span class="label">Periodo Orbital:</span>
+                <span id="planet-period" class="value">-</span>
+            </div>
+        </div>
+        <div class="fact-box">
+            <h3>Dato Curioso</h3>
+            <p id="planet-fact">-</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Empaquetado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0a0a0f;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --primary: #8b5cf6;
+            --secondary: #06b6d4;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .layout {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        @media (max-width: 800px) {
+            .layout { flex-direction: column; }
+        }
+
+        .panel {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2 {
+            margin-top: 0;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* UPLOAD ZONE */
+        .drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .drop-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(139, 92, 246, 0.1);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(0,0,0,0.2);
+            color: white;
+            font-size: 14px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        input[type="text"]:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        /* COLLECTIONS LIST */
+        .collection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            width: auto;
+            padding: 5px 10px;
+            margin: 0;
+        }
+
+        /* CHAT ZONE */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 10px;
+        }
+
+        .bubble {
+            max-width: 80%;
+            padding: 15px;
+            border-radius: 12px;
+            line-height: 1.5;
+        }
+
+        .bubble.user {
+            align-self: flex-end;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid var(--primary);
+        }
+
+        .bubble.ai {
+            align-self: flex-start;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid var(--secondary);
+        }
+
+        .chunks-panel {
+            margin-top: 10px;
+            font-size: 12px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .chunks-panel summary {
+            cursor: pointer;
+            color: #9ca3af;
+            font-weight: 600;
+        }
+
+        .chunk {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #d1d5db;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group input { margin-bottom: 0; }
+        .input-group button { width: auto; margin-bottom: 0; }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- PANTALLA IZQUIERDA: Entrenamiento -->
+        <div class="panel">
+            <h2>Gestión de Colecciones</h2>
+            
+            <form id="uploadForm">
+                <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <p>Arrastra un archivo .txt aquí o haz clic para subir</p>
+                    <input type="file" id="fileInput" accept=".txt" class="hidden">
+                </div>
+                
+                <input type="text" id="colNameInput" placeholder="Nombre de la colección (ej. astronomia)" required>
+                
+                <button type="submit" id="btnUpload">
+                    <span id="uploadText">Entrenar RAG</span>
+                    <div class="spinner" id="uploadSpinner"></div>
+                </button>
+            </form>
+
+            <h3 style="margin-top: 20px;">Colecciones Existentes</h3>
+            <div id="collectionsList"></div>
+        </div>
+
+        <!-- PANTALLA DERECHA: Chat RAG -->
+        <div class="panel">
+            <h2>Consultas RAG</h2>
+            
+            <select id="colSelect">
+                <option value="">Selecciona una colección...</option>
+            </select>
+
+            <div class="chat-container" id="chatContainer">
+                <div style="text-align:center; color:#9ca3af; margin-top:50px;">
+                    Selecciona una colección y haz una pregunta para empezar.
+                </div>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="queryInput" placeholder="Escribe tu pregunta..." onkeypress="if(event.key==='Enter') sendQuery()">
+                <button onclick="sendQuery()" id="btnQuery">
+                    <span id="queryText">Enviar</span>
+                    <div class="spinner" id="querySpinner"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DRAG AND DROP ---
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                dropZone.querySelector('p').innerText = "Archivo seleccionado: " + fileInput.files[0].name;
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                dropZone.querySelector('p').innerText = "Archivo seleccionado: " + fileInput.files[0].name;
+            }
+        });
+
+        // --- FETCH COLLECTIONS ---
+        async function loadCollections() {
+            const res = await fetch('/api/collections');
+            const cols = await res.json();
+            
+            const list = document.getElementById('collectionsList');
+            const select = document.getElementById('colSelect');
+            
+            list.innerHTML = '';
+            select.innerHTML = '<option value="">Selecciona una colección...</option>';
+            
+            cols.forEach(c => {
+                // List
+                list.innerHTML += `
+                    <div class="collection-item">
+                        <div>
+                            <strong>${c.name}</strong><br>
+                            <small>${c.count} chunks</small>
+                        </div>
+                        <button class="btn-delete" onclick="deleteCollection('${c.name}')">Borrar</button>
+                    </div>
+                `;
+                // Select
+                select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+            });
+        }
+
+        // --- UPLOAD ---
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!fileInput.files.length) { alert("Sube un archivo"); return; }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('collection_name', document.getElementById('colNameInput').value);
+
+            document.getElementById('uploadText').classList.add('hidden');
+            document.getElementById('uploadSpinner').style.display = 'block';
+            document.getElementById('btnUpload').disabled = true;
+
+            try {
+                const res = await fetch('/api/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                if(data.error) alert(data.error);
+                else {
+                    alert(data.message);
+                    loadCollections();
+                }
+            } catch(e) { alert("Error de red"); }
+
+            document.getElementById('uploadText').classList.remove('hidden');
+            document.getElementById('uploadSpinner').style.display = 'none';
+            document.getElementById('btnUpload').disabled = false;
+        });
+
+        // --- DELETE ---
+        async function deleteCollection(name) {
+            if(!confirm(`¿Borrar colección ${name}?`)) return;
+            await fetch(`/api/collections/${name}`, { method: 'DELETE' });
+            loadCollections();
+        }
+
+        // --- QUERY ---
+        async function sendQuery() {
+            const colName = document.getElementById('colSelect').value;
+            const qInput = document.getElementById('queryInput');
+            const question = qInput.value.trim();
+
+            if (!colName) { alert("Selecciona una colección primero"); return; }
+            if (!question) return;
+
+            const chat = document.getElementById('chatContainer');
+            if(chat.innerHTML.includes("Selecciona una colección")) chat.innerHTML = '';
+
+            // User msg
+            chat.innerHTML += `<div class="bubble user">${question}</div>`;
+            qInput.value = '';
+            chat.scrollTop = chat.scrollHeight;
+
+            document.getElementById('queryText').classList.add('hidden');
+            document.getElementById('querySpinner').style.display = 'block';
+            document.getElementById('btnQuery').disabled = true;
+
+            try {
+                const res = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ question, collection_name: colName })
+                });
+                const data = await res.json();
+
+                if(data.error) {
+                    chat.innerHTML += `<div class="bubble ai" style="color:red">Error: ${data.error}</div>`;
+                } else {
+                    let chunksHtml = data.chunks.map(c => `
+                        <div class="chunk">
+                            <span style="color:#6366f1">[Score: ${c.score.toFixed(4)}]</span> ${c.text}
+                        </div>
+                    `).join('');
+
+                    chat.innerHTML += `
+                        <div class="bubble ai">
+                            <div>${data.answer.replace(/\n/g, '<br>')}</div>
+                            <details class="chunks-panel">
+                                <summary>Ver chunks encontrados (${data.chunks.length})</summary>
+                                ${chunksHtml}
+                            </details>
+                        </div>
+                    `;
+                }
+            } catch(e) {
+                chat.innerHTML += `<div class="bubble ai" style="color:red">Error de conexión</div>`;
+            }
+
+            chat.scrollTop = chat.scrollHeight;
+            document.getElementById('queryText').classList.remove('hidden');
+            document.getElementById('querySpinner').style.display = 'none';
+            document.getElementById('btnQuery').disabled = false;
+        }
+
+        // Init
+        loadCollections();
+    </script>
+</body>
+</html>

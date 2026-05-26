@@ -1,0 +1,11 @@
+Este proyecto representa la evolución final del sistema RAG, empaquetándolo en una aplicación web completa con interfaz gráfica accesible desde el navegador. El objetivo es que cualquier usuario, independientemente de sus conocimientos técnicos, pueda subir documentos, crear colecciones de conocimiento y realizar consultas semánticas potenciadas por inteligencia artificial, todo ello sin tocar la terminal ni escribir una sola línea de código.
+
+La aplicación ofrece un flujo de trabajo intuitivo que comienza con la creación de una colección, que actúa como contenedor temático para los documentos. El usuario puede arrastrar y soltar archivos de texto directamente en la interfaz o utilizar el selector de archivos tradicional. Una vez subidos, el sistema procesa automáticamente los documentos: los divide en chunks, genera los embeddings correspondientes y los almacena en ChromaDB. Todo este proceso ocurre en segundo plano y el usuario recibe notificación cuando la indexación se completa.
+
+Para realizar consultas, basta con seleccionar la colección deseada y escribir la pregunta en el campo de texto. El sistema recupera los fragmentos más relevantes y los procesa a través del modelo de lenguaje para generar una respuesta elaborada. He puesto especial cuidado en que la interfaz proporcione feedback visual durante todo el proceso, ya que las operaciones de embedding y generación pueden tomar algunos segundos.
+
+El backend está construido con Flask en Python, exponiendo una API REST que gestiona las operaciones CRUD sobre colecciones, la subida de archivos, el procesamiento de documentos y las consultas RAG. Ollama proporciona tanto el modelo de embeddings como el modelo generativo, manteniendo todo el procesamiento en local. ChromaDB gestiona la persistencia y búsqueda de vectores.
+
+El frontend utiliza HTML, CSS y JavaScript para crear una interfaz moderna con soporte de drag and drop para la subida de archivos. La comunicación con el backend se realiza mediante peticiones asíncronas a la API REST, lo que permite actualizar la interfaz sin recargar la página completa.
+
+Este ejercicio cierra el ciclo de los proyectos RAG demostrando que las tecnologías de búsqueda semántica e inteligencia artificial generativa pueden empaquetarse en productos accesibles y funcionales, listos para ser utilizados por usuarios no técnicos en contextos reales.
